@@ -25,12 +25,14 @@ class HospitalResource extends Resource
 
     public static function form(Form $form): Form
     {
-         return $form
+        return $form
             ->schema([
                 Forms\Components\TextInput::make('hospital_name')
+                    ->label(__('dashboard.hospital_name'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\FileUpload::make('hospital_logo')
+                    ->label(__('dashboard.hospital_logo'))
                     ->image()
                     ->directory('hospital_logos')
                     ->preserveFilenames()
@@ -38,35 +40,42 @@ class HospitalResource extends Resource
                     ->visibility('public')
                     ->imageEditor(),
                 Forms\Components\TextInput::make('user_name')
+                    ->label(__('dashboard.full_name'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('email')
+                    ->label(__('dashboard.full_name'))
                     ->email()
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('password')
+                    ->label(__('dashboard.password'))
                     ->password()
-                    ->required(fn (string $context): bool => $context === 'create')
+                    ->required(fn(string $context): bool => $context === 'create')
                     ->minLength(8)
                     ->same('password_confirmation')
-                    ->dehydrated(fn ($state) => filled($state))
-                    ->dehydrateStateUsing(fn ($state) => Hash::make($state)),
+                    ->dehydrated(fn($state) => filled($state))
+                    ->dehydrateStateUsing(fn($state) => Hash::make($state)),
                 Forms\Components\TextInput::make('password_confirmation')
+                    ->label(__('dashboard.password_confirmation'))
                     ->password()
-                    ->required(fn (string $context): bool => $context === 'create')
+                    ->required(fn(string $context): bool => $context === 'create')
                     ->minLength(8)
                     ->dehydrated(false),
                 Forms\Components\TextInput::make('contact_number')
+                    ->label(__('dashboard.contact_number'))
+
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Select::make('country_id')
-                    ->label('Country')
+                    ->label(__('dashboard.country'))
                     ->options(Country::all()->pluck('name_ar', 'id'))
                     ->searchable()
                     ->required()
                     ->reactive(),
                 Forms\Components\Select::make('city')
-                    ->label('City')
+                    ->label(__('dashboard.region'))
+
                     ->options(function (callable $get) {
                         $country = Country::find($get('country_id'));
                         if (!$country) {
@@ -77,12 +86,14 @@ class HospitalResource extends Resource
                     ->searchable()
                     ->required()
                     ->reactive()
-                    ->disabled(fn (callable $get) => !$get('country_id')),
+                    ->disabled(fn(callable $get) => !$get('country_id')),
                 Forms\Components\Select::make('account_status')
+                    ->label(__('dashboard.account_status'))
+
                     ->options([
-                        'pending' => 'Pending',
-                        'active' => 'Active',
-                        'banned' => 'Banned',
+                        'pending' => 'dashboard.pending',
+                        'active' => 'dashboard.active',
+                        'banned' => 'dashboard.banned',
                     ])
                     ->required(),
             ]);
@@ -93,27 +104,35 @@ class HospitalResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('hospital_name')
+                    ->label(__('dashboard.hospital_name'))
                     ->searchable(),
-                Tables\Columns\ImageColumn::make('hospital_logo'),
+                Tables\Columns\ImageColumn::make('hospital_logo')
+                    ->label(__('dashboard.hospital_logo')),
                 Tables\Columns\TextColumn::make('email')
+                    ->label(__('dashboard.email'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('contact_number')
+                    ->label(__('dashboard.contact_number'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('country.name_ar')
+                    ->label(__('dashboard.country'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('region.name_ar')
-                    ->label('City')
+                    ->label(__('dashboard.region'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('account_status')
+                    ->label(__('dashboard.account_status'))
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'active' => 'success',
                         'pending' => 'warning',
                         'banned' => 'danger',
                     }),
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label(__('dashboard.created_at'))
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label(__('dashboard.last_modified_at'))
                     ->dateTime(),
             ])
             ->filters([
@@ -122,28 +141,31 @@ class HospitalResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\Action::make('activate')
-                    ->action(fn (Hospital $record) => $record->activate())
+                    ->label(__('dashboard.activate'))
+                    ->action(fn(Hospital $record) => $record->activate())
                     ->requiresConfirmation()
                     ->color('success')
                     ->icon('heroicon-o-check')
-                    ->visible(fn (Hospital $record): bool => $record->account_status === 'pending'),
+                    ->visible(fn(Hospital $record): bool => $record->account_status === 'pending'),
                 Tables\Actions\Action::make('ban')
-                    ->action(fn (Hospital $record) => $record->ban())
+                    ->label(__('dashboard.ban'))
+
+                    ->action(fn(Hospital $record) => $record->ban())
                     ->requiresConfirmation()
                     ->color('danger')
                     ->icon('heroicon-o-x-mark')
-                    ->visible(fn (Hospital $record): bool => $record->account_status !== 'banned'),
+                    ->visible(fn(Hospital $record): bool => $record->account_status !== 'banned'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                     Tables\Actions\BulkAction::make('activate')
-                        ->action(fn (Collection $records) => $records->each->activate())
+                        ->action(fn(Collection $records) => $records->each->activate())
                         ->requiresConfirmation()
                         ->color('success')
                         ->icon('heroicon-o-check'),
                     Tables\Actions\BulkAction::make('ban')
-                        ->action(fn (Collection $records) => $records->each->ban())
+                        ->action(fn(Collection $records) => $records->each->ban())
                         ->requiresConfirmation()
                         ->color('danger')
                         ->icon('heroicon-o-x-mark'),
@@ -156,6 +178,22 @@ class HospitalResource extends Resource
         return [
             //
         ];
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('dashboard.hospitals');
+    }
+
+
+    public static function getModelLabel(): string
+    {
+        return __('dashboard.hospital');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('dashboard.hospitals');
     }
 
     public static function getPages(): array

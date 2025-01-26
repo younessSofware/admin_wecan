@@ -32,6 +32,7 @@ return [
     'image' => 'الصورة',
     'hospital_logo' => 'شعار المستشفى',
     'hospital_name_ar' => 'اسم المستشفى بالعربية',
+    'hospital_name' => 'اسم المستشفى ',
     'hospital_name_en' => 'اسم المستشفى بالإنجليزية',
     'phone_number' => 'رقم الهاتف',
     'website' => 'الموقع الإلكتروني',
@@ -45,6 +46,8 @@ return [
     'active' => 'نشط',
     'cancelled' => 'ملغاة',
     'banned' => 'محظور',
+    'ban' => 'حظر',
+    'activate' => 'تفعيل',
     'profession_ar' => 'المهنة بالعربية',
     'profession_en' => 'المهنة بالإنجليزية',
     'hospital_ar' => 'المستشفى بالعربية',
@@ -86,10 +89,8 @@ return [
     'arabic_doctors_count' => 'عدد الاطباء العربية',
     'english_doctors_count' => 'عدد الاطباء الانجليزي',
     'newsletter_count' => 'عدد النشرات',
-    'charities' => 'Charities',
     'charities' => 'الجمعيات الخيرية',
     'charity' => 'الجمعية الخيرية',
-    'country' => 'الدولة',
     'charity_logo_ar' => 'شعار الجمعية الخيرية (بالعربية)',
     'charity_logo_en' => 'شعار الجمعية الخيرية (بالإنجليزية)',
     'charity_name_ar' => 'اسم الجمعية الخيرية (بالعربية)',
@@ -103,7 +104,13 @@ return [
     'donations' => 'التبرعات',
     'donation' => 'التبرع',
     'add_donation' => 'إضافة تبرع',
-    'country_code' => 'رمز البلد'
+    'country_code' => 'رمز البلد',
+    'hospitals' => 'المستشفيات',
+    'hospital' => 'مستشفى',
+    'full_name' => 'الاسم الكامل',
+    'password' => 'كلمة المرور',
+    'password_confirmation' => 'اعادة كلمة المرور'
+
 
 
 

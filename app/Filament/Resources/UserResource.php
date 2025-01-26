@@ -64,7 +64,7 @@ class UserResource extends Resource
                             ->label(__('dashboard.country'))
                             ->options(Country::all()->pluck('name_ar', 'id'))
                             ->searchable()
-                            ->hidden(fn (?User $record) => $record === null || $record->account_type !== 'patient'),
+                            ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'patient'),
                         Select::make('account_status')
                             ->label(__('dashboard.account_status'))
                             ->options([
@@ -77,69 +77,69 @@ class UserResource extends Resource
                             ->label(__('dashboard.profession_ar'))
                             ->required()
                             ->maxLength(255)
-                            ->hidden(fn (?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'doctor'),
                         Forms\Components\TextInput::make('profession_en')
                             ->label(__('dashboard.profession_en'))
                             ->required()
                             ->maxLength(255)
-                            ->hidden(fn (?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'doctor'),
                         Forms\Components\TextInput::make('hospital_ar')
                             ->label(__('dashboard.hospital_ar'))
                             ->required()
                             ->maxLength(255)
-                            ->hidden(fn (?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'doctor'),
                         Forms\Components\TextInput::make('hospital_en')
                             ->label(__('dashboard.hospital_en'))
                             ->required()
                             ->maxLength(255)
-                            ->hidden(fn (?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'doctor'),
                         Forms\Components\TextInput::make('contact_number')
                             ->label(__('dashboard.contact_number'))
                             ->required()
                             ->maxLength(255)
-                            ->hidden(fn (?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'doctor'),
 
                         Forms\Components\TextInput::make('experience_years')
                             ->label(__('dashboard.experience_years'))
                             ->required()->numeric()
-                            ->hidden(fn (?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'doctor'),
                         FileUpload::make('profile_picture')
                             ->label(__('dashboard.profile_picture'))
                             ->visibility('public')->image()
                             ->imageEditor()
                             ->maxSize(2048)
                             ->required()
-                            ->hidden(fn (?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'doctor'),
                         Toggle::make('show_info_to_patients')
                             ->label(__('dashboard.show_info_to_patients'))
-                            ->hidden(fn (?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'doctor'),
 
 
                     ])
                     ->columns(2)
-                    ->columnSpan(['lg' => fn (?User $record) => $record === null ? 3 : 2]),
+                    ->columnSpan(['lg' => fn(?User $record) => $record === null ? 3 : 2]),
 
                 Forms\Components\Section::make()
                     ->schema([
                         Forms\Components\Placeholder::make('account_type')
                             ->label(__('dashboard.account_type'))
-                            ->content(fn (User $record): ?string => $record->account_type),
+                            ->content(fn(User $record): ?string => $record->account_type),
                         Forms\Components\Placeholder::make('account_type')
                             ->label(__('dashboard.preferred_language'))
-                            ->content(fn (User $record): ?string => $record->preferred_language),
+                            ->content(fn(User $record): ?string => $record->preferred_language),
                         Forms\Components\Placeholder::make('newsletter_count')
                             ->label(__('dashboard.newsletter_count'))
-                            ->content(fn (User $record): ?string => $record->healthTips()->count())
-                            ->hidden(fn (?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->content(fn(User $record): ?string => $record->healthTips()->count())
+                            ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'doctor'),
                         Forms\Components\Placeholder::make('created_at')
                             ->label(__('dashboard.created_at'))
-                            ->content(fn (User $record): ?string => $record->created_at?->diffForHumans()),
+                            ->content(fn(User $record): ?string => $record->created_at?->diffForHumans()),
                         Forms\Components\Placeholder::make('updated_at')
                             ->label(__('dashboard.last_modified_at'))
-                            ->content(fn (User $record): ?string => $record->updated_at?->diffForHumans()),
+                            ->content(fn(User $record): ?string => $record->updated_at?->diffForHumans()),
                     ])
                     ->columnSpan(['lg' => 1])
-                    ->hidden(fn (?User $record) => $record === null),
+                    ->hidden(fn(?User $record) => $record === null),
             ])
             ->columns(3);
     }
@@ -161,11 +161,11 @@ class UserResource extends Resource
                 TextColumn::make('account_type')
                     ->label(__('dashboard.account_type'))
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'patient' => 'warning',
                         'admin' => 'success',
                         'doctor' => 'info',
-                        'hospital'=>'danger',
+                        'hospital' => 'danger',
                     }),
                 Tables\Columns\TextColumn::make('contact_number')
                     ->label(__('dashboard.phone_number'))
