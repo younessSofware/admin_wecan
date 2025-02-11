@@ -76,33 +76,19 @@ class UserResource extends Resource
                         Forms\Components\TextInput::make('profession_ar')
                             ->label(__('dashboard.profession_ar'))
                             ->required()
-                            ->maxLength(255)
-                            ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->maxLength(255),
                         Forms\Components\TextInput::make('profession_en')
                             ->label(__('dashboard.profession_en'))
                             ->required()
-                            ->maxLength(255)
-                            ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'doctor'),
-                        Forms\Components\TextInput::make('hospital_ar')
-                            ->label(__('dashboard.hospital_ar'))
-                            ->required()
-                            ->maxLength(255)
-                            ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'doctor'),
-                        Forms\Components\TextInput::make('hospital_en')
-                            ->label(__('dashboard.hospital_en'))
-                            ->required()
-                            ->maxLength(255)
-                            ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->maxLength(255),
                         Forms\Components\TextInput::make('contact_number')
                             ->label(__('dashboard.contact_number'))
                             ->required()
-                            ->maxLength(255)
-                            ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->maxLength(255),
 
                         Forms\Components\TextInput::make('experience_years')
                             ->label(__('dashboard.experience_years'))
-                            ->required()->numeric()
-                            ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->required()->numeric(),
                         FileUpload::make('profile_picture')
                             ->label(__('dashboard.profile_picture'))
                             ->visibility('public')->image()
@@ -113,7 +99,24 @@ class UserResource extends Resource
                         Toggle::make('show_info_to_patients')
                             ->label(__('dashboard.show_info_to_patients'))
                             ->hidden(fn(?User $record) => $record === null || $record->account_type !== 'doctor'),
+                        Forms\Components\Select::make('account_type')
+                            ->label(__('dashboard.account_type'))
+                            ->options([
+                                'hospitalAdmin' => __('dashboard.hospitalAdmin'),
+                                'doctor' => __('dashboard.doctor'),
+                                'patient' => __('dashboard.patient'),
+                                'user' => __('dashboard.user'),
+                            ]),
 
+                        Forms\Components\TextInput::make('password')
+                            ->type('password')
+                            ->label(__('dashboard.password'))
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('hospital_id')
+                            ->default(self::getHospitalId())
+                            ->extraAttributes(['style' => 'display: none;'])
+                            ->hiddenLabel(),
 
                     ])
                     ->columns(2)
@@ -144,9 +147,22 @@ class UserResource extends Resource
             ->columns(3);
     }
 
+
+    public static function getHospitalId()
+    {
+        $currentUser = User::find(auth()->user()->id);
+        return $currentUser->hospital_id;
+    }
+
     public static function table(Table $table): Table
     {
         return $table
+            ->query(
+                User::where(
+                    'hospital_id',
+                    self::getHospitalId()
+                )->where('account_type', 'not like', 'hospital')
+            )
             ->columns([
                 TextColumn::make('name')
                     ->label(__('dashboard.name'))
@@ -166,6 +182,7 @@ class UserResource extends Resource
                         'admin' => 'success',
                         'doctor' => 'info',
                         'hospital' => 'danger',
+                        'user' => 'secondary',
                     }),
                 Tables\Columns\TextColumn::make('contact_number')
                     ->label(__('dashboard.phone_number'))

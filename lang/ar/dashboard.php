@@ -13,9 +13,9 @@ return [
     'supporters' => 'الداعمون',
     'supporter' => 'الداعم',
     'users' => 'المستخدمون',
-    'user' => 'المستخدم',
+    'user' => 'مستخدم',
     'doctors' => 'الأطباء',
-    'doctor' => 'الطبيب',
+    'doctor' => 'طبيب',
     'patients' => 'المرضى',
     'patient' => 'المريض',
     'patient_appointments' => 'مواعيد المريض',
@@ -109,7 +109,19 @@ return [
     'hospital' => 'مستشفى',
     'full_name' => 'الاسم الكامل',
     'password' => 'كلمة المرور',
-    'password_confirmation' => 'اعادة كلمة المرور'
+    'password_confirmation' => 'اعادة كلمة المرور',
+    'new_connection_requests' => 'طلبات الارتباط الجديدة',
+    'patient_name' => 'اسم المريض',
+    'patient_email' => 'البريد الالكتروني للمريض',
+    'status' => 'الحالة',
+    'pending' => 'معلق',
+    'approved' => 'مقبول',
+    'rejected' => 'مرفوض',
+    'default' => 'غير معروف', // للقيم غير المتوقعة
+    'edit_status' => 'تعديل الحالة',
+    'save' => 'حفظ',
+    'chats' => 'الدردشة',
+    'hospitalAdmin' => 'مدير المستشفى'
 
 
 
