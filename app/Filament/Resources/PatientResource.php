@@ -7,7 +7,7 @@ use App\Filament\Resources\PatientResource\RelationManagers;
 use App\Models\Country;
 use App\Models\User;
 use App\Models\Hospital;
-
+use App\Models\HospitalUserAttachment;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -57,89 +57,51 @@ class PatientResource extends Resource
         return $currentUser->hospital_id;
     }
 
-    public static function form(Form $form): Form
+    public static function canCreate(): bool
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make()
-                    ->schema([
-                        Forms\Components\TextInput::make('name')
-                            ->label(__('dashboard.name'))
-                            ->maxLength(255)
-                            ->required(),
-                        Forms\Components\TextInput::make('email')
-                            ->label(__('dashboard.email'))
-                            ->required()
-                            ->email()
-                            ->maxLength(255)
-                            ->unique(ignoreRecord: true),
-
-                        Select::make('country_id')
-                            ->label(__('dashboard.country'))
-                            ->options(Country::all()->pluck('name_ar', 'id'))
-                            ->searchable(),
-                        Select::make('account_status')
-                            ->label(__('dashboard.account_status'))
-                            ->options([
-                                'active' => __('dashboard.active'),
-                                'cancelled' => __('dashboard.cancelled'),
-                                'banned' => __('dashboard.banned'),
-                            ])
-                            ->searchable(),
-
-                        Forms\Components\TextInput::make('password')
-                            ->type('password')
-                            ->label(__('dashboard.password'))
-                            ->required()
-                            ->maxLength(255),
-
-                        Forms\Components\TextInput::make('contact_number')
-                            ->type('tel')
-                            ->label(__('dashboard.contact_number'))
-                            ->required()
-                            ->maxLength(255),
-
-                        Forms\Components\TextInput::make('hospital_id')
-                            ->default(self::getHospitalId())
-                            ->extraAttributes(['style' => 'display: none;'])
-                            ->hiddenLabel(),
-
-                        Forms\Components\TextInput::make('account_type')
-                            ->default('patient')
-                            ->extraAttributes(['style' => 'display: none;'])
-                            ->hiddenLabel(),
-                    ])
-                    ->columns(2)
-                    ->columnSpan(['lg' => fn(?User $record) => $record === null ? 3 : 2]),
-
-            ])
-            ->columns(2);
+        return false;
     }
+
 
 
 
     public static function table(Table $table): Table
     {
-        return $table
-            ->query(
-                User::where('account_type', 'patient')
-                    ->where('hospital_id', self::getHospitalId())
-            )
-
+        return $table->query(
+            User::where('account_type', 'patient')
+                ->join('hospital_user_attachments', function ($join) {
+                    $join->on('users.hospital_id', '=', 'hospital_user_attachments.hospital_id')
+                        ->whereColumn('users.id', 'hospital_user_attachments.user_id'); // Ensures the join on both user_id and hospital_id
+                })
+                ->where('hospital_user_attachments.hospital_id', self::getHospitalId())
+                ->where('hospital_user_attachments.status', 'approved')
+        )
             ->columns([
+                TextColumn::make('id')
+                    ->sortable(),
+                TextColumn::make('user_id')
+                    ->sortable(),
                 TextColumn::make('name')
                     ->label(__('dashboard.name'))
-                    ->searchable(isIndividual: true)
                     ->sortable(),
                 TextColumn::make('email')
                     ->label(__('dashboard.email'))
-                    ->searchable(isIndividual: true, isGlobal: false)
                     ->sortable(),
                 TextColumn::make('country.name_ar')
                     ->label(__('dashboard.country')),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->actions(actions: [
+                Tables\Actions\DeleteAction::make('cancel')
+                    ->label(__('dashboard.unlink'))
+                    ->modalHeading(__(key: 'dashboard.unlink_doctor'))
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->action(function ($record) {
+                        HospitalUserAttachment::where('user_id', $record->id)
+                            ->where('hospital_id', $record->hospital_id)
+                            ->delete();
+                        User::find($record->id)->update(['hospital_id' => NULL]);
+                    })
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -159,8 +121,8 @@ class PatientResource extends Resource
     {
         return [
             'index' => Pages\ListPatients::route('/'),
-            'create' => Pages\CreatePatient::route('/create'),
-            'edit' => Pages\EditPatient::route('/{record}/edit'),
+            // 'create' => Pages\CreatePatient::route('/create'),
+            // 'edit' => Pages\EditPatient::route('/{record}/edit'),
         ];
     }
 

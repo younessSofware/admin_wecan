@@ -121,8 +121,10 @@ return [
     'edit_status' => 'تعديل الحالة',
     'save' => 'حفظ',
     'chats' => 'الدردشة',
-    'hospitalAdmin' => 'مدير المستشفى'
-
+    'hospitalAdmin' => 'مدير المستشفى',
+    'cancel' => 'الغاء',
+    'unlink' => 'الغاء ارتباط',
+    'unlink_doctor' => 'الغاء ارتباط مع طبيب'
 
 
 

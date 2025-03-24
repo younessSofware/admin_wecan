@@ -5,10 +5,13 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\DoctorResource\Pages;
 use App\Filament\Resources\DoctorResource\RelationManagers;
 use App\Models\Country;
+use App\Models\HospitalUserAttachment;
 use App\Models\User;
 use App\Models\Hospital;
+use Illuminate\Support\Facades\File;
 
 use Filament\Forms;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
@@ -23,7 +26,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class DoctorResource extends Resource
 {
-    protected static ?string $model = User::class;
+    protected static ?string $model = HospitalUserAttachment::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
@@ -38,10 +41,36 @@ class DoctorResource extends Resource
         return __('dashboard.doctors');
     }
 
+
     public static function getHospitalId()
     {
         $currentUser = User::find(auth()->user()->id);
         return $currentUser->hospital_id;
+    }
+
+    public static function getTableQuery()
+    {
+        $query =  User::where('account_type', 'doctor')
+            ->where('hospital_id', self::getHospitalId());
+        dd($query->toSql());
+        return  $query;
+    }
+
+    public static function getTableQuery2()
+    {
+
+        $query =  User::where('account_type', 'doctor')
+            ->join('hospital_user_attachments', function ($join) {
+                $join->on('users.hospital_id', '=', 'hospital_user_attachments.hospital_id')
+                    ->whereColumn('users.id', 'hospital_user_attachments.user_id');
+            })
+            ->where(
+                'hospital_user_attachments.hospital_id',
+                self::getHospitalId()
+            )
+            ->where('hospital_user_attachments.status', 'approved');
+        // dd($query->toSql());
+        return  $query;
     }
 
 
@@ -57,74 +86,46 @@ class DoctorResource extends Resource
     {
         return __('dashboard.doctor');
     }
-
-
-
-    public static function form(Form $form): Form
+    public static function canCreate(): bool
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make()
-                    ->schema([
-                        Forms\Components\TextInput::make('name')
-                            ->label(__('dashboard.name'))
-                            ->maxLength(255)
-                            ->required(),
-                        Forms\Components\TextInput::make('email')
-                            ->label(__('dashboard.email'))
-                            ->required()
-                            ->email()
-                            ->maxLength(255)
-                            ->unique(ignoreRecord: true),
-
-                        Select::make('country_id')
-                            ->label(__('dashboard.country'))
-                            ->options(Country::all()->pluck('name_ar', 'id'))
-                            ->searchable(),
-                        Select::make('account_status')
-                            ->label(__('dashboard.account_status'))
-                            ->options([
-                                'active' => __('dashboard.active'),
-                                'cancelled' => __('dashboard.cancelled'),
-                                'banned' => __('dashboard.banned'),
-                            ])
-                            ->searchable(),
-
-                        Forms\Components\TextInput::make('password')
-                            ->type('password')
-                            ->label(__('dashboard.password'))
-                            ->required()
-                            ->maxLength(255),
-
-                        Forms\Components\TextInput::make('contact_number')
-                            ->type('tel')
-                            ->label(__('dashboard.contact_number'))
-                            ->required()
-                            ->maxLength(255),
-
-                        Forms\Components\TextInput::make('hospital_id')
-                            ->default(self::getHospitalId())
-                            ->extraAttributes(['style' => 'display: none;'])
-                            ->hiddenLabel(),
-
-                        Forms\Components\TextInput::make('account_type')
-                            ->default('doctor')
-                            ->extraAttributes(['style' => 'display: none;'])
-                            ->hiddenLabel(),
-                    ])
-                    ->columns(2)
-                    ->columnSpan(['lg' => fn(?User $record) => $record === null ? 3 : 2]),
-
-            ])
-            ->columns(2);
+        return false;
     }
+
+
+    // public static function form(Form $form): Form
+    // {
+    //     return $form
+    //         ->schema([
+    //             Forms\Components\Section::make()
+    //                 ->schema([
+    //                     Forms\Components\TextInput::make('email')
+    //                         ->label(__('dashboard.email'))
+    //                         ->email()
+    //                         ->maxLength(255)
+    //                         ->unique(ignoreRecord: true),
+    //                     Forms\Components\TextInput::make('hospital_id')
+    //                         ->default(self::getHospitalId())
+    //                         ->extraAttributes(['style' => 'display: none;'])
+    //                         ->hiddenLabel(),
+    //                     Forms\Components\TextInput::make('sender_id')
+    //                         ->default(auth()->user()->id)
+    //                         ->extraAttributes(['style' => 'display: none;'])
+    //                         ->hiddenLabel(),
+    //                     Forms\Components\TextInput::make('status')
+    //                         ->default('pending')
+    //                         ->extraAttributes(['style' => 'display: none;'])
+    //                         ->hiddenLabel(),
+    //                 ])
+    //                 ->columns(2)
+    //         ]);
+    // }
+
 
 
     public static function table(Table $table): Table
     {
         return $table
-            ->query(User::where('account_type', 'doctor')
-                ->where('hospital_id', self::getHospitalId()))
+            ->query(self::getTableQuery2())
             ->columns([
                 TextColumn::make('name')
                     ->label(__('dashboard.name'))
@@ -143,7 +144,17 @@ class DoctorResource extends Resource
             ])
             ->filters([])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make('cancel')
+                    ->label(__('dashboard.unlink'))
+                    ->modalHeading(__(key: 'dashboard.unlink_doctor'))
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->action(function ($record) {
+                        // HospitalUserAttachment::where('user_id', $record->id)
+                        //     ->where('hospital_id', $record->hospital_id)
+                        //     ->delete();
+                        // User::find($record->id)->update(['hospital_id' => NULL]);
+                    })
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -163,8 +174,8 @@ class DoctorResource extends Resource
     {
         return [
             'index' => Pages\ListDoctors::route('/'),
-            'create' => Pages\CreateDoctor::route('/create'),
-            'edit' => Pages\EditDoctor::route('/{record}/edit'),
+            // 'create' => Pages\CreateDoctor::route('/create'),
+            // 'edit' => Pages\EditDoctor::route('/{record}/edit'),
         ];
     }
 

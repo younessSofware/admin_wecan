@@ -16,6 +16,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\File;
 
 class NewConnectionRequestResource extends Resource
 {
@@ -42,32 +43,41 @@ class NewConnectionRequestResource extends Resource
         return __('dashboard.new_connection_requests');
     }
 
-
-    private static function getAttached()
+    public static function getHospitalId()
     {
-
-        $hospital_id = User::find(auth()->user()->id)->hospital->id ?? 29;
-        // Assuming these return collections
-        return HospitalUserAttachment::where('hospital_id', $hospital_id);
+        $currentUser = User::find(auth()->user()->id);
+        return $currentUser->hospital_id;
     }
+
+
+
 
 
     public static function table(Table $table): Table
     {
-        return $table
-            ->tap(function ($table) {
-                $table->query(self::getAttached());  // Correctly pass the query result
-            })
+        return $table->query(
+            User::where('account_type', 'doctor')
+                ->orWhere('account_type', 'patient')
+                ->join('hospital_user_attachments', function ($join) {
+                    $join->on('users.hospital_id', '=', 'hospital_user_attachments.hospital_id')
+                        ->whereColumn('users.id', 'hospital_user_attachments.user_id'); // Ensures the join on both user_id and hospital_id
+                })
+                ->where('hospital_user_attachments.hospital_id', self::getHospitalId())
+        )
             ->columns([
-                TextColumn::make('sender.name')
+                TextColumn::make('id')
+                    ->sortable(),
+                TextColumn::make('user_id')
+                    ->sortable(),
+                TextColumn::make('name')
                     ->label(__('dashboard.name'))
                     ->sortable(),
-                TextColumn::make('sender.email')
+                TextColumn::make('email')
                     ->label(__('dashboard.email'))
                     ->sortable(),
-                TextColumn::make('sender.country.name_ar')
+                TextColumn::make('country.name_ar')
                     ->label(__('dashboard.country')),
-                TextColumn::make('sender.account_type')
+                TextColumn::make('account_type')
                     ->label(__('dashboard.account_type'))
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
@@ -99,9 +109,28 @@ class NewConnectionRequestResource extends Resource
                                 'approved' => __('dashboard.approved'),
                                 'rejected' => __('dashboard.rejected'),
                             ])
-                            ->required(), // Ensure the field is required
+                            ->required(),
                     ])
-                    ->modalButton(__('dashboard.save')) // Button label in the modal
+                    ->modalButton(__('dashboard.save'))
+                    ->action(function ($record, array $data) {
+                        $filePath = storage_path('app/file.txt');
+                        $content = json_encode($data);
+                        File::append($filePath, $content);
+                        // still record give me the first row id
+                        // HospitalUserAttachment::find($record->id)
+                        //     ->update(['status' => $data['status']]);
+                    }),
+                Tables\Actions\DeleteAction::make('cancel')
+                    ->label(__('dashboard.unlink'))
+                    ->modalHeading(__(key: 'dashboard.unlink_doctor'))
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->action(function ($record) {
+                        HospitalUserAttachment::where('user_id', $record->id)
+                            ->where('hospital_id', $record->hospital_id)
+                            ->delete();
+                        User::find($record->id)->update(['hospital_id' => NULL]);
+                    })
             ])
             ->bulkActions([]);
     }

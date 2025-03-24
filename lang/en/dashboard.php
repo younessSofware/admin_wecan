@@ -109,5 +109,7 @@ return [
     'hospital' => 'Hospital',
     'full_name' => 'Full Name',
     'password' => 'Password',
-    'password_confirmation' => 'Password Confirmation'
+    'password_confirmation' => 'Password Confirmation',
+    'back' => 'Back',
+    'save' => 'Save'
 ];

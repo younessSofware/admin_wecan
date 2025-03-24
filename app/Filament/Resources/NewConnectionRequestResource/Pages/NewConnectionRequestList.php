@@ -10,10 +10,11 @@ class NewConnectionRequestList extends ListRecords
 {
     protected static string $resource = NewConnectionRequestResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getFormActions(): array
     {
         return [
-            // Actions\CreateAction::make(),
+            $this->getCreateFormAction(),
+            $this->getCancelFormAction(),
         ];
     }
 }

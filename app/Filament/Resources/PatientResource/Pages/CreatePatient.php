@@ -9,4 +9,12 @@ use Filament\Resources\Pages\CreateRecord;
 class CreatePatient extends CreateRecord
 {
     protected static string $resource = PatientResource::class;
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
 }
