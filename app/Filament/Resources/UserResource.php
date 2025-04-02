@@ -162,6 +162,8 @@ class UserResource extends Resource
                     'hospital_id',
                     self::getHospitalId()
                 )->where('account_type', 'not like', 'hospital')
+                    ->where('account_type', 'not like', 'doctor')
+                    ->where('account_type', 'not like', 'patient')
             )
             ->columns([
                 TextColumn::make('name')

@@ -22,6 +22,7 @@ return [
     'patient_food' => 'طعام المريض',
     'patient_health_report' => 'التقارير الصحية للمريض',
     'patient_medications' => 'أدوية المريض',
+    'create_patient_medication' => 'اضافة ادوية المريض',
     'patient_note' => 'ملاحظات المريض',
     'health_tip' => 'نصائح وإرشادات من الأطباء',
     'chemotherapy_session' => 'جلسات العلاج الكيماوي',
@@ -56,6 +57,7 @@ return [
     'experience_years' => 'سنوات الخبرة',
     'profile_picture' => 'صورة الملف الشخصي',
     'show_info_to_patients' => 'عرض المعلومات للمرضى',
+    'show_to_patient' => 'اضهار للمريض',
     'drug_name' => 'اسم الدواء',
     'drug_image' => 'صورة الدواء',
     'frequency' => 'عدد مرات التناول',
@@ -124,9 +126,13 @@ return [
     'hospitalAdmin' => 'مدير المستشفى',
     'cancel' => 'الغاء',
     'unlink' => 'الغاء ارتباط',
-    'unlink_doctor' => 'الغاء ارتباط مع طبيب'
-
-
-
-
+    'unlink_doctor' => 'الغاء ارتباط مع طبيب',
+    'add_chemotherapy_session' => 'إضافة جلسة علاج كيماوي',
+    'add_health_tips' => 'إضافة نصائح صحية',
+    'add_patient_appointment' => 'إضافة موعد المريض',
+    'add_patient_food' => 'إضافة طعام المريض',
+    'add_patient_health_report' => 'إضافة تقرير صحي للمريض',
+    'add_patient_medicament' => 'إضافة دواء المريض',
+    'add_patient_notes' => 'إضافة ملاحظات المريض',
+    'edit' => 'تعديل'
 ];

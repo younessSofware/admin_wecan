@@ -111,5 +111,14 @@ return [
     'password' => 'Password',
     'password_confirmation' => 'Password Confirmation',
     'back' => 'Back',
-    'save' => 'Save'
+    'save' => 'Save',
+    'add_chemotherapy_session' => 'Add Chemotherapy Session',
+    'add_health_tips' => 'Add Health Tips',
+    'add_patient_appointment' => 'Add Patient Appointment',
+    'add_patient_food' => 'Add Patient Food',
+    'add_patient_health_report' => 'Add Patient Health Report',
+    'add_patient_medicament' => 'Add Patient Medicament',
+    'add_patient_notes' => 'Add Patient Notes',
+    'edit' => 'Edit'
+
 ];
