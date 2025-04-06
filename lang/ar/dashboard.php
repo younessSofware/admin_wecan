@@ -137,5 +137,7 @@ return [
     'edit' => 'تعديل',
     'add_connection_request' => 'إضافة ارتباط',
     'of_duration' => 'لمدة',
-    'day/month' => 'بوم/شهر'
+    'day/month' => 'بوم/شهر',
+    'arabic_patient_count' => 'عدد المرضى بالعربية',
+    'english_patient_count' => 'عدد المرضى بالانجليزية'
 ];
