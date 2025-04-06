@@ -9,14 +9,18 @@ use App\Models\HospitalUserAttachment;
 use App\Models\User;
 use App\Models\Hospital;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Get;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\File;
+use stdClass;
 
 class NewConnectionRequestResource extends Resource
 {
@@ -49,6 +53,56 @@ class NewConnectionRequestResource extends Resource
         return $currentUser->hospital_id;
     }
 
+    public static function getQuery()
+    {
+        $query = User::select(
+            'hospital_user_attachments.id as id',
+            'hospital_user_attachments.status as status'
+        )
+            ->join('hospital_user_attachments', function ($join) {
+                $join->on('users.hospital_id', '=', 'hospital_user_attachments.hospital_id')
+                    ->whereColumn('users.id', 'hospital_user_attachments.user_id');
+            })
+            ->where(function ($q) {
+                $q->where('account_type', 'patient')
+                    ->orWhere('account_type', 'doctor');
+            })
+            ->where(
+                'hospital_user_attachments.hospital_id',
+                self::getHospitalId()
+            );
+        $query = HospitalUserAttachment::where('hospital_id', self::getHospitalId());
+        // fix the prob
+        return $query;
+    }
+
+    public static function getName($user_id)
+    {
+        $user = User::select('name')->where('id', $user_id)->first();
+        return $user ? $user->name : 'Unknown';
+    }
+
+    public static function getEmail($user_id)
+    {
+        $user = User::select('email')->where('id', $user_id)->first();
+        return $user ? $user->email : 'Unknown';
+    }
+
+    public static function getCountry($user_id)
+    {
+        $user = User::select('country_id')->where('id', $user_id)->with('country')->first();
+        return $user && $user->country ? $user->country->name_ar : '';
+    }
+
+
+
+    public static function getAccountType($user_id)
+    {
+        $user = User::select('account_type')->where('id', $user_id)->first();
+        return $user ? $user->account_type : 'Unknown';
+    }
+
+
 
 
 
@@ -56,30 +110,47 @@ class NewConnectionRequestResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->query(
-            User::where('account_type', 'doctor')
-                ->orWhere('account_type', 'patient')
-                ->join('hospital_user_attachments', function ($join) {
-                    $join->on('users.hospital_id', '=', 'hospital_user_attachments.hospital_id')
-                        ->whereColumn('users.id', 'hospital_user_attachments.user_id'); // Ensures the join on both user_id and hospital_id
-                })
-                ->where('hospital_user_attachments.hospital_id', self::getHospitalId())
+            self::getQuery()
         )
             ->columns([
-                TextColumn::make('id')
-                    ->sortable(),
-                TextColumn::make('user_id')
-                    ->sortable(),
                 TextColumn::make('name')
                     ->label(__('dashboard.name'))
-                    ->sortable(),
+                    ->getStateUsing(
+                        static function ($record): string {
+                            return (string) (
+                                self::getName($record->user_id)
+                            );
+                        }
+                    ),
                 TextColumn::make('email')
                     ->label(__('dashboard.email'))
-                    ->sortable(),
-                TextColumn::make('country.name_ar')
-                    ->label(__('dashboard.country')),
+                    ->getStateUsing(
+                        static function ($record): string {
+                            return (string) (
+                                self::getEmail($record->user_id)
+                            );
+                        }
+                    ),
+                TextColumn::make('country')
+                    ->label(__('dashboard.country'))
+                    ->getStateUsing(
+                        static function ($record): string {
+                            return (string) (
+                                self::getCountry($record->user_id)
+                            );
+                        }
+                    ),
+
                 TextColumn::make('account_type')
                     ->label(__('dashboard.account_type'))
                     ->badge()
+                    ->getStateUsing(
+                        static function ($record): string {
+                            return (string) (
+                                self::getAccountType($record->user_id)
+                            );
+                        }
+                    )
                     ->color(fn(string $state): string => match ($state) {
                         'patient' => 'warning',
                         'doctor' => 'info',
@@ -99,9 +170,51 @@ class NewConnectionRequestResource extends Resource
                     })
             ])
             ->filters([])
+            ->headerActions([
+                Tables\Actions\CreateAction::make()
+                    ->label(__('dashboard.add_connection_request'))
+                    ->icon('heroicon-o-plus')
+                    ->form([
+                        TextInput::make('email')
+                            ->label('Email')
+                            ->required()
+                            ->email(),
+                        Select::make('status')
+                            ->label('Status')
+                            ->options([
+                                'pending' => __('dashboard.pending'),
+                            ])
+                            ->default('pending')       // preselect "pending"
+                            ->disabled()
+                            ->required(),
+                    ])
+                    ->using(function (array $data, $model) {
+                        //
+                        $user = User::where('email', $data['email'])
+                            ->get()->first();
+                        $data['user_id'] = $user->id;
+                        $data['sender_id'] = auth()->user()->id;
+                        $data['hospital_id'] = self::getHospitalId();
+                        unset($data['email']);
+                        $user->update(['hospital_id' => self::getHospitalId()]);
+                        return $model::create($data);
+                    })
+            ])
+
+            // form email status and custom action
             ->actions([
                 Tables\Actions\EditAction::make()
-                    ->modalHeading(__('dashboard.edit_status')) // Modal title
+                    ->hidden(fn($record) =>
+                    $record->sender_id == auth()->user()->id)
+                    ->modalHeading(__('dashboard.edit_status'))
+                    ->beforeFormFilled(function ($record) {
+                        // $filePath = storage_path('app/file.txt');
+                        // $content = json_encode([
+                        //     'recordId' => $record,
+                        // ]);
+                        // File::append($filePath, $content);
+                    })
+
                     ->form([
                         Select::make('status')
                             ->options([
@@ -111,25 +224,26 @@ class NewConnectionRequestResource extends Resource
                             ])
                             ->required(),
                     ])
-                    ->modalButton(__('dashboard.save'))
-                    ->action(function ($record, array $data) {
-                        $filePath = storage_path('app/file.txt');
-                        $content = json_encode($data);
-                        File::append($filePath, $content);
-                        // still record give me the first row id
-                        // HospitalUserAttachment::find($record->id)
-                        //     ->update(['status' => $data['status']]);
-                    }),
+                    ->action(function ($record, $data) {
+                        $record->update($data);
+                    })
+                    ->modalButton(__('dashboard.save')),
                 Tables\Actions\DeleteAction::make('cancel')
                     ->label(__('dashboard.unlink'))
                     ->modalHeading(__(key: 'dashboard.unlink_doctor'))
                     ->color('danger')
                     ->requiresConfirmation()
                     ->action(function ($record) {
-                        HospitalUserAttachment::where('user_id', $record->id)
-                            ->where('hospital_id', $record->hospital_id)
+
+                        User::find($record->user_id)->update(['hospital_id' => NULL]);
+                        HospitalUserAttachment::find($record->id)
                             ->delete();
-                        User::find($record->id)->update(['hospital_id' => NULL]);
+
+                        // $filePath = storage_path('app/file.txt');
+                        // $content = json_encode([
+                        //     'recordId' => $record->id,
+                        // ]);
+                        // File::append($filePath, $content);
                     })
             ])
             ->bulkActions([]);
@@ -149,7 +263,7 @@ class NewConnectionRequestResource extends Resource
             'index' => Pages\NewConnectionRequestList::route('/'),
 
             // 'create' => Pages\CreateDoctor::route('/create'),
-            // 'edit' => Pages\EditDoctor::route('/{record}/edit'),
+            // 'edit' => Pages\EditStatusConnectionRequest::route('/{record}/edit'),
         ];
     }
 

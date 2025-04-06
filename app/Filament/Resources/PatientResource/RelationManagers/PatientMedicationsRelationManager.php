@@ -8,6 +8,7 @@ use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -76,6 +77,18 @@ class PatientMedicationsRelationManager extends RelationManager
                         'month' => __('dashboard.month'),
                     ])
                     ->searchable(),
+                TextInput::make('duration')
+                    ->required()
+                    ->label(__('dashboard.of_duration'))
+                    ->numeric(),
+                Select::make('month-or-day')
+                    ->required()
+                    ->label(__('dashboard.day/month'))
+                    ->options([
+                        'day' => __('dashboard.day'),
+                        // 'week' => __('dashboard.week'),
+                        'month' => __('dashboard.month'),
+                    ]),                //
                 Textarea::make('instructions')
                     ->rows(5)
                     ->columnSpan(2)

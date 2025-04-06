@@ -134,5 +134,8 @@ return [
     'add_patient_health_report' => 'إضافة تقرير صحي للمريض',
     'add_patient_medicament' => 'إضافة دواء المريض',
     'add_patient_notes' => 'إضافة ملاحظات المريض',
-    'edit' => 'تعديل'
+    'edit' => 'تعديل',
+    'add_connection_request' => 'إضافة ارتباط',
+    'of_duration' => 'لمدة',
+    'day/month' => 'بوم/شهر'
 ];

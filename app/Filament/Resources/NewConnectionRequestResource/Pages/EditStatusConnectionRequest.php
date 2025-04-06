@@ -3,18 +3,17 @@
 namespace App\Filament\Resources\NewConnectionRequestResource\Pages;
 
 use App\Filament\Resources\NewConnectionRequestResource;
-// use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
+use Filament\Actions;
+use Filament\Resources\Pages\EditRecord;
 
-class NewConnectionRequestList extends ListRecords
+class EditStatusConnectionRequest extends EditRecord
 {
     protected static string $resource = NewConnectionRequestResource::class;
 
-    protected function getFormActions(): array
+    protected function getHeaderActions(): array
     {
         return [
-            // $this->getCreateFormAction(),
-            // $this->getCancelFormAction(),
+            Actions\DeleteAction::make(),
         ];
     }
 }
